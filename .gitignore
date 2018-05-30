@@ -68,3 +68,6 @@ fabric.properties
 ### Scala template
 *.class
 *.log
+
+# Personal
+.idea

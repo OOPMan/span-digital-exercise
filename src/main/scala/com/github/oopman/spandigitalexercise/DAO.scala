@@ -1,11 +1,15 @@
 package com.github.oopman.spandigitalexercise
 
-import com.github.oopman.spandigitalexercise.Constants.Result.{Result=>ResultEnum}
+import com.github.oopman.spandigitalexercise.Constants.Result
+import com.github.oopman.spandigitalexercise.Constants.Result.{Result => ResultEnum}
 import com.github.oopman.spandigitalexercise.Models.{Results, Teams}
 import io.getquill.{H2JdbcContext, NamingStrategy}
 
 class DAO[N <: NamingStrategy](val context: H2JdbcContext[N]) {
   import context._
+
+  implicit val encodeResult = MappedEncoding[ResultEnum, Int](_.id)
+  implicit val decoderResult = MappedEncoding[Int, ResultEnum](Result(_))
 
   /**
     * Return all Teams objects
@@ -45,7 +49,7 @@ class DAO[N <: NamingStrategy](val context: H2JdbcContext[N]) {
       query[Results]
         .insert(
           _.teamId -> lift(teamId),
-          _.result -> lift(result.id)
+          _.result -> lift(result)
         )
     )
   }

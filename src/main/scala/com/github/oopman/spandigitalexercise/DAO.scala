@@ -50,7 +50,9 @@ class DAO[N <: NamingStrategy](val context: H2JdbcContext[N]) {
     *
     * @return
     */
-  def getResults: Seq[Results] = ???
+  def getResults: Seq[Results] = {
+    context.run(query[Results].sortBy(_.id)(Ord.ascNullsLast))
+  }
 
   /**
     * Insert a Result object

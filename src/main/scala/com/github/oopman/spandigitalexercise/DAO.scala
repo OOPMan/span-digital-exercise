@@ -12,6 +12,21 @@ class DAO[N <: NamingStrategy](val context: H2JdbcContext[N]) {
   implicit val decoderResult = MappedEncoding[Int, ResultEnum](Result(_))
 
   /**
+    * Retrieve a Team object by name. If it does not exist, it will be created
+    *
+    * @param name Name of Team
+    * @return
+    */
+  def getTeam(name: String): Teams = {
+    context.run(query[Teams].filter(_.name == lift(name))) match {
+      case List(team) => team
+      case _ =>
+        addTeam(name)
+        getTeam(name)
+    }
+  }
+
+  /**
     * Return all Teams objects
     *
     * @return

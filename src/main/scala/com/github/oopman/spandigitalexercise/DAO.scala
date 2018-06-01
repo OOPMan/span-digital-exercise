@@ -59,14 +59,16 @@ class DAO[N <: NamingStrategy](val context: H2JdbcContext[N]) {
     *
     * @param teamId PK of Team associated with Result
     * @param result Result enumeration value
+    * @param score Integer
     * @return
     */
-  def addResult(teamId: Int, result: ResultEnum): Long = {
+  def addResult(teamId: Int, result: ResultEnum, score: Int): Long = {
     context.run(
       query[Results]
         .insert(
           _.teamId -> lift(teamId),
-          _.result -> lift(result)
+          _.result -> lift(result),
+          _.score -> lift(score)
         )
     )
   }

@@ -16,9 +16,11 @@ object Models {
     *
     * @param id PK
     * @param teamId PK of Team whose result this object is
-    * @param result Match result
+    * @param result Match result for Team
+    * @param score Match score for Team
     */
   case class Results(id: Int,
                      teamId: Int,
-                     result: Result)
+                     result: Result,
+                     score: Int)
 }

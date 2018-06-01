@@ -42,13 +42,13 @@ class Ingester[N <: NamingStrategy](dao: DAO[N]) {
         case resultPattern(teamName, score) => Some((teamName, score.toInt))
         case _ => None
       })
-      // Step 2: Convert Arrays of 2-tuples into Lists of Options of 2-tuples
+      // Step 2: Convert Arrays of 2-tuples into Lists of Options of 3-tuples
       // containing Team PK and Result enum
       .map {
         case Array(Some((team1Name, team1Score)), Some((team2Name, team2Score))) =>
           Some(List(
-            (dao.getTeam(team1Name).id, Result.getResult(team1Score, team2Score)),
-            (dao.getTeam(team2Name).id, Result.getResult(team2Score, team1Score))
+            (dao.getTeam(team1Name).id, Result.getResult(team1Score, team2Score), team1Score),
+            (dao.getTeam(team2Name).id, Result.getResult(team2Score, team1Score), team2Score)
           ))
         case _ => None
       }
@@ -56,7 +56,7 @@ class Ingester[N <: NamingStrategy](dao: DAO[N]) {
       .filter(_.isDefined)
       .flatMap(_.get)
       .map {
-        case (teamId, result) => dao.addResult(teamId, result)
+        case (teamId, result, score) => dao.addResult(teamId, result, score)
       }
     results.sum > 0
   }

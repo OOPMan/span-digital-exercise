@@ -5,6 +5,7 @@ import java.io.File
 import scala.io.Source
 import io.getquill.NamingStrategy
 import com.github.oopman.spandigitalexercise.Constants.Result
+import io.getquill.context.sql.idiom.SqlIdiom
 
 import scala.util.matching.Regex
 
@@ -15,7 +16,7 @@ import scala.util.matching.Regex
   * @param dao Instance of DAO
   * @tparam N NamingStrategy type associated with DAO instance
   */
-class Ingester[N <: NamingStrategy](dao: DAO[N]) {
+class Ingester[Dialect <: SqlIdiom, Naming <: NamingStrategy](dao: DAO[Dialect, Naming]) {
   val resultPattern: Regex = raw"(.+) (\d+)".r
   /**
     * Ingest data from a Sequence of File instances, returning the count of

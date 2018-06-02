@@ -1,20 +1,36 @@
 package com.github.oopman.spandigitalexercise
 
+import java.io.File
+
 import com.github.oopman.spandigitalexercise.Constants.Result
 import com.github.oopman.spandigitalexercise.Constants.Result.{Result => ResultEnum}
 import com.github.oopman.spandigitalexercise.Models.{Results, Teams}
-import io.getquill.{H2JdbcContext, NamingStrategy}
+import io.getquill._
+import io.getquill.context.jdbc.JdbcContext
+import io.getquill.context.sql.idiom.SqlIdiom
 
 import scala.io.Source
 
-class DAO[N <: NamingStrategy](val context: H2JdbcContext[N]) {
+/**
+  *
+  * @param context
+  * @param dbInitScript
+  * @tparam Dialect
+  * @tparam Naming
+  */
+class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContext[Dialect, Naming],
+                                                         dbInitScript: Option[File]=None) {
   import context._
 
   implicit val encodeResult = MappedEncoding[ResultEnum, Int](_.id)
   implicit val decoderResult = MappedEncoding[Int, ResultEnum](Result(_))
 
-  val h2DatabaseScript: String = Source.fromResource("database.h2.sql").getLines.mkString("\n")
-  context.executeAction(h2DatabaseScript)
+  val databaseScript: String = dbInitScript match {
+    case Some(file) => Source.fromFile(file).getLines.mkString("\n")
+    case None => Constants.defaultDbInitScript.getLines.mkString("\n")
+  }
+
+  context.executeAction(databaseScript)
 
   /**
     * Retrieve a Team object by name. If it does not exist, it will be created

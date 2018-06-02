@@ -1,8 +1,10 @@
 package com.github.oopman.spandigitalexercise
 
+import scala.io.Source
+
 object Constants {
-  val dbUriPrefix = "jdbc:h2"
-  val defaultDbUriSuffix = ":mem:spandigitalexercise"
+  val defaultDbUri = "jdbc:h2:mem:spandigitalexercise"
+  val defaultDbInitScript = Source.fromResource("database.h2.sql")
 
   object Result extends Enumeration {
     type Result = Value

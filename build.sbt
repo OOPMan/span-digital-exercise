@@ -1,4 +1,4 @@
-name := "SPAN Digital Exercise"
+name := "span-digital-exercise"
 
 organization := "com.github.oopman"
 

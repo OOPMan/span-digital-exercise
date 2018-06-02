@@ -28,7 +28,7 @@ object CLI {
       })
       .text("JDBC database init script. Required for if using a JDBC database that is not H2")
 
-    opt[File]("<file>...")
+    arg[File]("<file>...")
       .unbounded()
       .optional()
       .action( (value: File, config: Config) => {
@@ -48,15 +48,24 @@ object CLI {
       dataSourceConfig.setJdbcUrl(config.dbUri)
       val dataSource = new HikariDataSource(dataSourceConfig)
       val context: JdbcContext[_ <: SqlIdiom, _ <: NamingStrategy] =
-        dataSourceConfig.getDataSourceClassName match {
-          case "org.h2.jdbcx.JdbcDataSource" => new H2JdbcContext(SnakeCase, dataSource)
-          case "org.postgresql.ds.PGSimpleDataSource" => new PostgresJdbcContext(SnakeCase, dataSource)
-          case "com.mysql.jdbc.jdbc2.optional.MysqlDataSource" => new MysqlJdbcContext(SnakeCase, dataSource)
-          case "org.sqlite.JDBC" => new SqliteJdbcContext(SnakeCase, dataSource)
-          case "com.microsoft.sqlserver.jdbc.SQLServerDataSource" => new SqlServerJdbcContext(SnakeCase, dataSource)
-          case _ => throw new RuntimeException("Unsupported database. Only H2, PostgreSQL, MySQL, SQLite and MS SQL Server are supported")
+        config.dbUri match {
+          case dbUri if dbUri.startsWith("jdbc:h2") => new H2JdbcContext(SnakeCase, dataSource)
+          case dbUri if dbUri.startsWith("jdbc:postgresql")=> new PostgresJdbcContext(SnakeCase, dataSource)
+          case dbUri if dbUri.startsWith("jdbc:mysql") => new MysqlJdbcContext(SnakeCase, dataSource)
+          case dbUri if dbUri.startsWith("jdbc:sqlite") => new SqliteJdbcContext(SnakeCase, dataSource)
+          case dbUri if dbUri.startsWith("jdbc:sqlserver") => new SqlServerJdbcContext(SnakeCase, dataSource)
+          case _ =>
+            println(dataSource.getDataSourceClassName)
+            throw new RuntimeException("Unsupported database. Only H2, PostgreSQL, MySQL, SQLite and MS SQL Server are supported")
         }
       val dao = new DAO(context, config.dbInitScript)
+      val ingester = new Ingester(dao)
+      val resultsIngested = ingester.ingestFiles(config.inputs)
+      // TODO: Logged number of results in ingested
+      val leagueResults = dao.calculateLeagueResults
+      for ((teamName, leaguePoints) <- leagueResults) {
+        println(s"$teamName, $leaguePoints pts".trim)
+      }
       0
     case None =>
       // Error

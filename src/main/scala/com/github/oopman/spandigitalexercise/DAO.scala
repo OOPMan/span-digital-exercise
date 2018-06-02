@@ -197,31 +197,33 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
       * For reference, the final query produced by Quill looks something like:
       *
       * SELECT
-      *   team.name,
-      *   CASE
-      *     WHEN x06result.total_points IS NOT NULL THEN x06result.total_points
-      *     ELSE 0
-      *   END
-      * FROM TEAMS team, (
+      *   x06result._1,
+      *   x06result._2
+      * FROM (
       *   SELECT
-      *     x06.id team_id,
-      *     SUM(
-      *       CASE
+      *     x06result.total_points _2,
+      *     team.name _1
+      *   FROM teams team, (
+      *     SELECT
+      *       x06.id team_id,
+      *       SUM(
+      *         CASE
       *         WHEN result.result = 0 THEN 3
       *         WHEN result.result = 1 THEN 0
       *         ELSE 1
-      *       END
-      *     ) total_points
-      *   FROM TEAMS x06
-      *   INNER JOIN results result ON x06.id = result.team_id
-      *   GROUP BY x06.id
+      *         END
+      *       ) total_points
+      *     FROM teams x06
+      *     INNER JOIN results result ON x06.id = result.team_id
+      *     GROUP BY x06.id) x06result
+      *     WHERE team.id = x06result.team_id
       * ) x06result
-      * WHERE team.id = x06result.team_id;
+      * ORDER BY x06result._2 DESC NULLS LAST
       *
       * It's quite a bit more verbose than the handwritten version and includes
       * an extra join that isn't really necessary but I suppose it could be
       * worse :-)
       */
-    context.run(teamNameTotalPointsQuery)
+    context.run(teamNameTotalPointsQuery.sortBy(_._2)(Ord.descNullsLast))
   }
 }

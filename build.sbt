@@ -16,7 +16,8 @@ libraryDependencies ++= Seq(
   "org.xerial" % "sqlite-jdbc" % "3.18.0",
   "com.microsoft.sqlserver" % "mssql-jdbc" % "6.1.7.jre8-preview",
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
-  "com.github.scopt" %% "scopt" % "3.7.0"
+  "com.github.scopt" %% "scopt" % "3.7.0",
+  "org.slf4j" % "slf4j-nop" % "1.7.25"
 )
 
 assemblyMergeStrategy in assembly := {

@@ -1,7 +1,5 @@
 package com.github.oopman.spandigitalexercise
 
-import java.io.File
-
 import com.github.oopman.spandigitalexercise.Constants.Result
 import com.github.oopman.spandigitalexercise.Constants.Result.{Result => ResultEnum}
 import com.github.oopman.spandigitalexercise.Models.{Results, Teams}
@@ -19,18 +17,13 @@ import scala.io.Source
   * @tparam Naming
   */
 class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContext[Dialect, Naming],
-                                                         dbInitScript: Option[File]=None) {
+                                                         val dbInitScript: Source) {
   import context._
 
   implicit val encodeResult = MappedEncoding[ResultEnum, Int](_.id)
   implicit val decoderResult = MappedEncoding[Int, ResultEnum](Result(_))
 
-  val databaseScript: String = dbInitScript match {
-    case Some(file) => Source.fromFile(file).getLines.mkString("\n")
-    case None => Constants.defaultDbInitScript.getLines.mkString("\n")
-  }
-
-  context.executeAction(databaseScript)
+  context.executeAction(dbInitScript.getLines.mkString("\n"))
 
   /**
     * Retrieve a Team object by name. If it does not exist, it will be created

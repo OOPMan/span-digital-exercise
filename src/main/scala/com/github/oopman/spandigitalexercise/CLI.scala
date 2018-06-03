@@ -8,10 +8,48 @@ import io.getquill.context.sql.idiom.SqlIdiom
 import io.getquill._
 import scopt.OptionParser
 
+import scala.io.Source
+
 object CLI {
   case class Config(dbUri: String=Constants.defaultDbUri,
                     dbInitScript: Option[File]=None,
                     inputs: Seq[File]=Nil)
+
+  /**
+    * Generates a Quill Context based on the input dbUri using the provided
+    * DataSource
+    *
+    * @param dbUri JDBC database URI
+    * @param dataSource Hikari DataSource
+    * @return
+    */
+  def getContext(dbUri: String, dataSource: HikariDataSource): JdbcContext[_ <: SqlIdiom, _ <: NamingStrategy] = {
+    dbUri match {
+      case dbUri if dbUri.startsWith("jdbc:h2") => new H2JdbcContext(SnakeCase, dataSource)
+      case dbUri if dbUri.startsWith("jdbc:postgresql") => new PostgresJdbcContext(SnakeCase, dataSource)
+      case dbUri if dbUri.startsWith("jdbc:mysql") => new MysqlJdbcContext(SnakeCase, dataSource)
+      case dbUri if dbUri.startsWith("jdbc:sqlite") => new SqliteJdbcContext(SnakeCase, dataSource)
+      case dbUri if dbUri.startsWith("jdbc:sqlserver") => new SqlServerJdbcContext(SnakeCase, dataSource)
+      case _ => throw new RuntimeException(s"Unsupported database URI $dbUri. Only H2, PostgreSQL, MySQL, SQLite and MS SQL Server are supported")
+    }
+  }
+
+  /**
+    * Retrieves an appropraite DB init script based on the input dbUri
+    *
+    * @param dbUri JDBC database URI
+    * @return
+    */
+  def getDbInitScript(dbUri: String): Source = {
+    dbUri match {
+      case dbUri if dbUri.startsWith("jdbc:h2") => Source.fromResource("database.h2.sql")
+      case dbUri if dbUri.startsWith("jdbc:postgresql") => Source.fromResource("database.postgresql.sql")
+      case dbUri if dbUri.startsWith("jdbc:mysql") => Source.fromResource("database.mysql.sql")
+      case dbUri if dbUri.startsWith("jdbc:sqlite") => Source.fromResource("database.sqlite.sql")
+      case dbUri if dbUri.startsWith("jdbc:sqlserver") => Source.fromResource("database.sqlserver.sql")
+      case _ => throw new RuntimeException(s"Unsupported database URI $dbUri. Only H2, PostgreSQL, MySQL, SQLite and MS SQL Server are supported")
+    }
+  }
 
   private val parser = new OptionParser[Config]("SPAN Digital Exercise") {
     head("SPAN Digital Exercise", "0.1")
@@ -47,21 +85,11 @@ object CLI {
       val dataSourceConfig = new HikariConfig()
       dataSourceConfig.setJdbcUrl(config.dbUri)
       val dataSource = new HikariDataSource(dataSourceConfig)
-      val context: JdbcContext[_ <: SqlIdiom, _ <: NamingStrategy] =
-        config.dbUri match {
-          case dbUri if dbUri.startsWith("jdbc:h2") => new H2JdbcContext(SnakeCase, dataSource)
-          case dbUri if dbUri.startsWith("jdbc:postgresql")=> new PostgresJdbcContext(SnakeCase, dataSource)
-          case dbUri if dbUri.startsWith("jdbc:mysql") => new MysqlJdbcContext(SnakeCase, dataSource)
-          case dbUri if dbUri.startsWith("jdbc:sqlite") => new SqliteJdbcContext(SnakeCase, dataSource)
-          case dbUri if dbUri.startsWith("jdbc:sqlserver") => new SqlServerJdbcContext(SnakeCase, dataSource)
-          case _ =>
-            println(dataSource.getDataSourceClassName)
-            throw new RuntimeException("Unsupported database. Only H2, PostgreSQL, MySQL, SQLite and MS SQL Server are supported")
-        }
-      val dao = new DAO(context, config.dbInitScript)
+      val context = getContext(config.dbUri, dataSource)
+      val dbInitScript = getDbInitScript(config.dbUri)
+      val dao = new DAO(context, dbInitScript)
       val ingester = new Ingester(dao)
       val resultsIngested = ingester.ingestFiles(config.inputs)
-      // TODO: Logged number of results in ingested
       val leagueResults = dao.calculateLeagueResults
       for ((teamName, leaguePoints) <- leagueResults) {
         println(s"$teamName, $leaguePoints pts".trim)

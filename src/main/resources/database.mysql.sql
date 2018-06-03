@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS teams
+(
+  id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(512) NOT NULL
+);
+
+CREATE TABLE  IF NOT EXISTS results
+(
+  id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  team_id INTEGER NOT NULL,
+  result INTEGER NOT NULL,
+  score INTEGER NOT NULL,
+  CONSTRAINT results_teams_id_fk FOREIGN KEY (team_id) REFERENCES teams (id)
+);
+
+CREATE INDEX results_teams_id_fk ON results (team_id);

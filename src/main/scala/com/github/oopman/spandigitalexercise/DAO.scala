@@ -55,8 +55,8 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
     * @param name Name of Team
     * @return
     */
-  def addTeam(name: String): Long = {
-    context.run(query[Teams].insert(_.name -> lift(name)))
+  def addTeam(name: String): Int = {
+    context.run(query[Teams].insert(_.name -> lift(name)).returning(_.id))
   }
 
   /**
@@ -76,7 +76,7 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
     * @param score Integer
     * @return
     */
-  def addResult(teamId: Int, result: ResultEnum, score: Int): Long = {
+  def addResult(teamId: Int, result: ResultEnum, score: Int): Int = {
     context.run(
       query[Results]
         .insert(
@@ -84,6 +84,7 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
           _.result -> lift(result),
           _.score -> lift(score)
         )
+        .returning(_.id)
     )
   }
 

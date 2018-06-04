@@ -70,7 +70,6 @@ Compilation
 5. Execute `git clone https://github.com/OOPMan/span-digital-exercise.git`
 6. Execute `cd span-digital-exercise`
 7. Execute `sbt assembly`. This will cause SBT to:
-
   1. Download dependencies
   2. Compile the source code
   3. Run the unit tests

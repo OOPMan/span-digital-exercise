@@ -12,7 +12,7 @@ import scala.io.Source
 
 object CLI {
   case class Config(dbUri: String=Constants.defaultDbUri,
-                    inputs: Seq[File]=Nil)
+                    inputs: Seq[Source]=Nil)
 
   /**
     * Generates a Quill Context based on the input dbUri using the provided
@@ -50,6 +50,8 @@ object CLI {
     }
   }
 
+  implicit val sourceRead: scopt.Read[Source] = scopt.Read.reads(Source.fromFile)
+
   private val parser = new OptionParser[Config]("SPAN Digital Exercise") {
     head("SPAN Digital Exercise", "0.1")
 
@@ -59,10 +61,16 @@ object CLI {
       })
       .text(s"JDBC database URI to use for data source. Defaults to ${Constants.defaultDbUri}")
 
-    arg[File]("<file>...")
+    opt[Unit]("use-sample-data")
+      .action( (_, config: Config) => {
+        config.copy(inputs=config.inputs :+ Source.fromResource("sample.txt"))
+      })
+      .text("Ingest sample data provided by SPAN Digital")
+
+    arg[Source]("<file>...")
       .unbounded()
       .optional()
-      .action( (value: File, config: Config) => {
+      .action( (value: Source, config: Config) => {
         config.copy(inputs=config.inputs :+ value)
       })
       .text("Input match data files")
@@ -82,7 +90,7 @@ object CLI {
       val dbInitScript = getDbInitScript(config.dbUri)
       val dao = new DAO(context, dbInitScript)
       val ingester = new Ingester(dao)
-      val resultsIngested = ingester.ingestSources(config.inputs.map(Source.fromFile))
+      val resultsIngested = ingester.ingestSources(config.inputs)
       val leagueResults = dao.calculateLeagueResults
       for ((teamName, leaguePoints) <- leagueResults) {
         println(s"$teamName, $leaguePoints pts".trim)

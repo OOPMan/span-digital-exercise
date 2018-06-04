@@ -1,7 +1,5 @@
 package com.github.oopman.spandigitalexercise
 
-import java.io.File
-
 import scala.io.Source
 import io.getquill.NamingStrategy
 import com.github.oopman.spandigitalexercise.Constants.Result

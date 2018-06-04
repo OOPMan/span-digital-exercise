@@ -62,7 +62,7 @@ class Ingester[Dialect <: SqlIdiom, Naming <: NamingStrategy](dao: DAO[Dialect, 
     */
   def processLine(line: String): Array[Option[(String, Int)]] = {
     line.trim.split(',').map {
-      case resultPattern(teamName, score) => Some((teamName, score.toInt))
+      case resultPattern(teamName, score) => Some((teamName.trim, score.toInt))
       case _ => None
     }
   }

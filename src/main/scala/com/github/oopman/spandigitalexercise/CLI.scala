@@ -12,7 +12,6 @@ import scala.io.Source
 
 object CLI {
   case class Config(dbUri: String=Constants.defaultDbUri,
-                    dbInitScript: Option[File]=None,
                     inputs: Seq[File]=Nil)
 
   /**
@@ -59,12 +58,6 @@ object CLI {
         config.copy(dbUri=value)
       })
       .text(s"JDBC database URI to use for data source. Defaults to ${Constants.defaultDbUri}")
-
-    opt[File]('i', "db-init-script")
-      .action( (value: File, config: Config) => {
-        config.copy(dbInitScript = Some(value))
-      })
-      .text("JDBC database init script. Required for if using a JDBC database that is not H2")
 
     arg[File]("<file>...")
       .unbounded()

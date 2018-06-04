@@ -89,7 +89,7 @@ object CLI {
       val dbInitScript = getDbInitScript(config.dbUri)
       val dao = new DAO(context, dbInitScript)
       val ingester = new Ingester(dao)
-      val resultsIngested = ingester.ingestFiles(config.inputs)
+      val resultsIngested = ingester.ingestSources(config.inputs.map(Source.fromFile))
       val leagueResults = dao.calculateLeagueResults
       for ((teamName, leaguePoints) <- leagueResults) {
         println(s"$teamName, $leaguePoints pts".trim)

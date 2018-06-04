@@ -24,21 +24,20 @@ class Ingester[Dialect <: SqlIdiom, Naming <: NamingStrategy](dao: DAO[Dialect, 
     * Ingest data from a Sequence of File instances, returning the count of
     * Files successfully ingested
     *
-    * @param files A Sequence of Files
+    * @param sources A Sequence of Files
     * @return Number of files successfully ingested
     */
-  def ingestFiles(files: Seq[File]): Int = files.map(ingestFile).count(_ == true)
+  def ingestSources(sources: Seq[Source]): Int = sources.map(ingestSource).count(_ == true)
 
   /**
     * Ingest data from a single File instance, returning true in the instance of
     * a successful ingestion
     *
-    * @param file A File to ingest
+    * @param source A File to ingest
     * @return
     */
-  def ingestFile(file: File): Boolean = {
-    val lines = Source.fromFile(file).getLines
-    val results = lines
+  def ingestSource(source: Source): Boolean = {
+    val results = source.getLines
       .map(processLine)
       .map(processLineAsArray)
       .filter(_.isDefined)

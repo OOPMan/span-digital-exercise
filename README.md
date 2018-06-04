@@ -3,6 +3,31 @@ SPAN Digital Coding Exercise
 A sample Scala project written for SPAN Digital that calculates league
 results using match data.
 
+Input files are expected to be in the format:
+```
+Team A 3, Team B 0
+Team A 1, Team B 1
+```
+
+
+Features
+--------
+* Processing of 0...n input files in the correct format
+* Optional persistence (by default an in-memory database is used)
+* Sample data included (see usage instructions)
+
+
+Implementation notes
+--------------------
+This application uses scopt (https://github.com/scopt/scopt) to implement
+a CLI interface for loading and processing input files. Quill (http://getquill.io)
+is used to store the loaded data (and optionally persist that data to
+a non-volatile location) and calculate the league results (See the
+`com.github.oopman.spandigitalexercise.DAO.calculateLeagueResults` method
+for some interesting explorations in using Quill for mildly non-trivial
+things and the issues encountered doing so. TL;DR: Quill is great but
+still has a ways to go).
+
 
 Execution Requirements
 ----------------------
@@ -15,7 +40,8 @@ Execution
 2. Navigate to https://github.com/OOPMan/span-digital-exercise/releases
 3. Download a pre-compiled JAR release
 4. Open a shell window and navigate to the location the pre-compiled JAR release was saved
-5. Execute `java -jar span-digital-exercise.jar --help`
+5. Execute `java -jar span-digital-exercise-1.0.jar --help` for usage instructions
+   on optional persistence, sample data and file inputs
 
 
 Compilation Requirements

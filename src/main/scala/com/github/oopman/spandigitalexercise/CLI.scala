@@ -67,6 +67,9 @@ object CLI {
       })
       .text("Ingest sample data provided by SPAN Digital")
 
+    help("help")
+      .text("Prints this usage text")
+
     arg[Source]("<file>...")
       .unbounded()
       .optional()

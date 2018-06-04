@@ -7,7 +7,7 @@ import org.scalatest.WordSpec
 
 class DAOSpec extends WordSpec {
   val dataSourceConfig = new HikariConfig()
-  dataSourceConfig.setJdbcUrl(Constants.defaultDbUri)
+  dataSourceConfig.setJdbcUrl("jdbc:h2:mem:daospec")
   dataSourceConfig.setDriverClassName("org.h2.Driver")
   val dataSource = new HikariDataSource(dataSourceConfig)
   val dao = new DAO(

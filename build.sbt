@@ -2,7 +2,7 @@ name := "span-digital-exercise"
 
 organization := "com.github.oopman"
 
-version := "1.0"
+version := "1.0.1"
 
 scalaVersion := "2.12.6"
 

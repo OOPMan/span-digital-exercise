@@ -26,7 +26,7 @@ a non-volatile location) and calculate the league results (See the
 `com.github.oopman.spandigitalexercise.DAO.calculateLeagueResults` method
 for some interesting explorations in using Quill for mildly non-trivial
 things and the issues encountered doing so. TL;DR: Quill is great but
-still has a ways to go).
+still has a ways to go)
 
 
 Execution Requirements
@@ -75,6 +75,8 @@ Compilation
    3. Run the unit tests
    4. Package the binaries into a fat JAR located in `target/scala-2.12`
 
+If `sbt assembly` fails you may need to add the *Artima Maven Repository*
+to your global SBT file
 
 Unit Tests
 ----------

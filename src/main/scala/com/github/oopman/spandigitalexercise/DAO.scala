@@ -23,7 +23,8 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
   implicit val encodeResult = MappedEncoding[ResultEnum, Int](_.id)
   implicit val decoderResult = MappedEncoding[Int, ResultEnum](Result(_))
 
-  context.executeAction(dbInitScript.getLines.mkString("\n"))
+  val statements = dbInitScript.getLines.mkString("\n").split("-- STATEMENT MARKER")
+  for (statement <- statements) context.executeAction(statement)
 
   /**
     * Retrieve a Team object by name. If it does not exist, it will be created

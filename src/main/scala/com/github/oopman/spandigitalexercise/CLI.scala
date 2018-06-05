@@ -34,6 +34,23 @@ object CLI {
   }
 
   /**
+    * Returns the JDBC driver name based on the input dbUri
+    *
+    * @param dbUri JDBC database URI
+    * @return
+    */
+  def getDriverClassName(dbUri: String): String = {
+    dbUri match {
+      case dbUri if dbUri.startsWith("jdbc:h2") => "org.h2.Driver"
+      case dbUri if dbUri.startsWith("jdbc:postgresql") => "org.postgresql.Driver"
+      case dbUri if dbUri.startsWith("jdbc:mysql") => "com.mysql.jdbc.Driver"
+      case dbUri if dbUri.startsWith("jdbc:sqlite") => "org.sqlite.JDBC"
+      case dbUri if dbUri.startsWith("jdbc:sqlserver") => "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+      case _ => throw new RuntimeException(s"Unsupported database URI $dbUri. Only H2, PostgreSQL, MySQL, SQLite and MS SQL Server are supported")
+    }
+  }
+
+  /**
     * Retrieves an appropraite DB init script based on the input dbUri
     *
     * @param dbUri JDBC database URI
@@ -88,6 +105,7 @@ object CLI {
     case Some(config) =>
       val dataSourceConfig = new HikariConfig()
       dataSourceConfig.setJdbcUrl(config.dbUri)
+      dataSourceConfig.setDriverClassName(getDriverClassName(config.dbUri))
       val dataSource = new HikariDataSource(dataSourceConfig)
       val context = getContext(config.dbUri, dataSource)
       val dbInitScript = getDbInitScript(config.dbUri)

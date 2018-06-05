@@ -6,7 +6,7 @@ BEGIN
    name NVARCHAR(512) NOT NULL
   );
 END;
-
+-- STATEMENT MARKER
 IF OBJECT_ID(N'dbo.results', N'U') IS NULL
 BEGIN
   CREATE TABLE results

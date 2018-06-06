@@ -47,7 +47,7 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
           })
     }
 
- /**
+  /**
     * Return all Teams objects
     *
     * @return
@@ -93,6 +93,23 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
         )
         .returning(_.id)
     )
+  }
+
+  /**
+    * Insert multiple Result objects
+    *
+    * @param results An Iterator over results tuples
+    * @return
+    */
+  def addResults(results: Iterator[(Int, ResultEnum, Int)]): Seq[Long] = {
+    results.grouped(Constants.batchInsertSize).map(results => context.run(
+      liftQuery(results)
+        .foreach(tuple => query[Results].insert(
+          _.teamId -> tuple._1,
+          _.result -> tuple._2,
+          _.score -> tuple._3
+        ))
+    )).toList.flatten
   }
 
   /**

@@ -2,6 +2,7 @@ package com.github.oopman.spandigitalexercise
 
 object Constants {
   val defaultDbUri = "jdbc:h2:mem:spandigitalexercise"
+  val batchInsertSize = 10000
 
   object Result extends Enumeration {
     type Result = Value

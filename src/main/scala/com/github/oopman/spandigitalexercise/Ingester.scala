@@ -35,20 +35,13 @@ class Ingester[Dialect <: SqlIdiom, Naming <: NamingStrategy](dao: DAO[Dialect, 
     * @return
     */
   def ingestSource(source: Source): Boolean = {
-    val results = source.getLines
+    dao.addResults(
+      source.getLines
       .map(processLine)
       .map(processLineAsArray)
       .filter(_.isDefined)
       .flatMap(_.get)
-      .map {
-        case (teamId, result, score) =>
-          try {
-            dao.addResult(teamId, result, score)
-          } catch {
-            case ex: Exception => 0 // TODO: Handle and log
-          }
-      }
-    results.sum > 0
+    ).sum > 0
   }
 
   /**

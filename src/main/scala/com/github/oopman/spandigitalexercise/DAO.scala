@@ -67,6 +67,18 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
   }
 
   /**
+    * Insert multiple Team objects
+    *
+    * @param teams An Iterator of team names
+    * @return
+    */
+  def addTeams(teams: Iterator[String]): Seq[Long] = {
+    teams.grouped(Constants.batchInsertSize).map(teams => context.run(
+      liftQuery(teams).foreach(name => query[Teams].insert(_.name -> name))
+    )).toList.flatten
+  }
+
+  /**
     * Retrieve all Results objects
     *
     * @return

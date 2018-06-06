@@ -23,25 +23,31 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
   implicit val encodeResult = MappedEncoding[ResultEnum, Int](_.id)
   implicit val decoderResult = MappedEncoding[Int, ResultEnum](Result(_))
 
-  val statements = dbInitScript.getLines.mkString("\n").split("-- STATEMENT MARKER")
+  // Execute DDL statements
+  private val statements = dbInitScript.getLines.mkString("\n").split("-- STATEMENT MARKER")
   for (statement <- statements) context.executeAction(statement)
 
+  private val teamCache = scala.collection.mutable.Map[String, Teams]()
   /**
-    * Retrieve a Team object by name. If it does not exist, it will be created
+    * Get a Team by Name and cache it
     *
     * @param name Name of Team
     * @return
     */
   def getTeam(name: String): Teams = {
-    context.run(query[Teams].filter(_.name == lift(name))) match {
-      case List(team) => team
-      case _ =>
-        addTeam(name)
-        getTeam(name)
+    teamCache.getOrElseUpdate(
+      name,
+      context.run(
+        query[Teams]
+          .filter(_.name == lift(name))) match {
+            case List(team) => team
+            case _ =>
+              addTeam(name)
+              getTeam(name)
+          })
     }
-  }
 
-  /**
+ /**
     * Return all Teams objects
     *
     * @return

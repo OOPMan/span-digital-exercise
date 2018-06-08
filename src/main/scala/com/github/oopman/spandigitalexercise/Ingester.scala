@@ -53,7 +53,6 @@ class Ingester[Dialect <: SqlIdiom, Naming <: NamingStrategy](dao: DAO[Dialect, 
       .filterNot(teams.isDefinedAt)
     dao.addTeams(teamsToAdd)
     teams ++= Map(dao.getTeams.map(team => team.name -> team.id): _*)
-    println(s"${teams.size} teams available")
     dao.addResults(
       data
       .flatMap {

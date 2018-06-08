@@ -28,34 +28,11 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
   for (statement <- statements) context.executeAction(statement)
 
   /**
-    * Get a Team by Name and cache it
-    *
-    * @param name Name of Team
-    * @return
-    */
-  def getTeam(name: String): Option[Teams] = {
-    context.run(query[Teams].filter(_.name == lift(name))) match {
-      case List(team) => Some(team)
-      case _ => None
-    }
-  }
-
-  /**
     * Return all Teams objects
     *
     * @return
     */
   def getTeams: Seq[Teams] = context.run(query[Teams].sortBy(_.id)(Ord.ascNullsLast))
-
-  /**
-    * Insert a Team object
-    *
-    * @param name Name of Team
-    * @return
-    */
-  def addTeam(name: String): Int = {
-    context.run(query[Teams].insert(_.name -> lift(name)).returning(_.id))
-  }
 
   /**
     * Insert multiple Team objects
@@ -76,26 +53,6 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
     */
   def getResults: Seq[Results] = {
     context.run(query[Results].sortBy(_.id)(Ord.ascNullsLast))
-  }
-
-  /**
-    * Insert a Result object
-    *
-    * @param teamId PK of Team associated with Result
-    * @param result Result enumeration value
-    * @param score Integer
-    * @return
-    */
-  def addResult(teamId: Int, result: ResultEnum, score: Int): Int = {
-    context.run(
-      query[Results]
-        .insert(
-          _.teamId -> lift(teamId),
-          _.result -> lift(result),
-          _.score -> lift(score)
-        )
-        .returning(_.id)
-    )
   }
 
   /**

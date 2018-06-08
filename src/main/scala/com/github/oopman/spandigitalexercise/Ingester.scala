@@ -17,6 +17,8 @@ import scala.util.matching.Regex
   * @tparam Naming NamingStrategy upper-bounded type parameter
   */
 class Ingester[Dialect <: SqlIdiom, Naming <: NamingStrategy](dao: DAO[Dialect, Naming]) {
+  type resultItem = (String, Result, Int)
+  type resultRow = (resultItem, resultItem)
   val resultPattern: Regex = raw"(.+) (\d+)".r
   /**
     * Ingest data from a Sequence of File instances, returning the count of
@@ -35,13 +37,32 @@ class Ingester[Dialect <: SqlIdiom, Naming <: NamingStrategy](dao: DAO[Dialect, 
     * @return
     */
   def ingestSource(source: Source): Boolean = {
-    dao.addResults(
-      source.getLines
+    val teams = scala.collection.mutable.Map(
+      dao.getTeams.map(team => team.name -> team.id): _*
+    )
+    val data = source
+      .getLines
       .map(processLine)
       .map(processLineAsArray)
       .filter(_.isDefined)
-      .flatMap(_.get)
-    ).sum > 0
+      .map(_.get)
+      .toList
+    val teamsToAdd = data
+      .flatMap(tuple => tuple._1._1 :: tuple._2._1 :: Nil)
+      .distinct
+      .filterNot(teams.isDefinedAt)
+    dao.addTeams(teamsToAdd)
+    teams ++= Map(dao.getTeams.map(team => team.name -> team.id): _*)
+    println(s"${teams.size} teams available")
+    dao.addResults(
+      data
+      .flatMap {
+        case ((team1Name, team1Result, team1Score), (team2Name, team2Result, team2Score)) =>
+          (teams(team1Name), team1Result, team1Score) ::
+          (teams(team2Name), team2Result, team2Score) ::
+          Nil
+      }
+    ).nonEmpty
   }
 
   /**
@@ -66,13 +87,13 @@ class Ingester[Dialect <: SqlIdiom, Naming <: NamingStrategy](dao: DAO[Dialect, 
     * @param lineAsArray An array of data produced from a line of text by processLine
     * @return
     */
-  def processLineAsArray(lineAsArray: Array[Option[(String, Int)]]): Option[List[(Int, Result, Int)]] = {
+  def processLineAsArray(lineAsArray: Array[Option[(String, Int)]]): Option[resultRow] = {
     lineAsArray match {
       case Array(Some((team1Name, team1Score)), Some((team2Name, team2Score))) =>
-        Some(List(
-          (dao.getTeam(team1Name).id, Result.getResult(team1Score, team2Score), team1Score),
-          (dao.getTeam(team2Name).id, Result.getResult(team2Score, team1Score), team2Score)
-        ))
+        Some(
+          (team1Name, Result.getResult(team1Score, team2Score), team1Score) ->
+          (team2Name, Result.getResult(team2Score, team1Score), team2Score)
+        )
       case _ =>
         None
     }

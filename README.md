@@ -40,7 +40,7 @@ Execution
 2. Navigate to https://github.com/OOPMan/span-digital-exercise/releases
 3. Download a pre-compiled JAR release
 4. Open a shell window and navigate to the location the pre-compiled JAR release was saved
-5. Execute `java -jar span-digital-exercise-1.0.1.jar --help` for usage instructions
+5. Execute `java -jar span-digital-exercise-1.0.2.jar --help` for usage instructions
    on optional persistence, sample data and file inputs
 
 

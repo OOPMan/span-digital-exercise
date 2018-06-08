@@ -70,7 +70,7 @@ object CLI {
   implicit val sourceRead: scopt.Read[Source] = scopt.Read.reads(Source.fromFile)
 
   private val parser = new OptionParser[Config]("java -jar span-digital-exercise-1.0.jar") {
-    head("SPAN Digital Exercise", "1.0.1")
+    head("SPAN Digital Exercise", "1.0.2")
 
     opt[String]('d', "db-uri")
       .action( (value: String, config: Config) => {

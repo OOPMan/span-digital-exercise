@@ -17,24 +17,21 @@ class DAOSpec extends WordSpec {
 
   "A DAO" can {
     "Add Teams" in {
-      assert(dao.addTeam("1st Team") == 1)
-      assert(dao.addTeam("2nd Team") == 2)
-    }
-
-    "Retrieve/Create a Team by Name" in {
-      assert(dao.getTeam("1st Team").id == 1)
-      assert(dao.getTeam("3rd Team").id == 3)
+      assert(dao.addTeams("1st Team" :: "2nd Team" :: Nil).nonEmpty)
     }
 
     "Retrieve all Teams" in {
-      assert(dao.getTeams.length == 3)
+      assert(dao.getTeams.length == 2)
     }
 
     "Add Results" in {
-      assert(dao.addResult(1, Constants.Result.Win, 3) == 1)
-      assert(dao.addResult(1, Constants.Result.Draw, 1) == 2)
-      assert(dao.addResult(2, Constants.Result.Loss, 0) == 3)
-      assert(dao.addResult(2, Constants.Result.Draw, 1) == 4)
+      val results = List(
+        (1, Constants.Result.Win, 3),
+        (1, Constants.Result.Draw, 1),
+        (2, Constants.Result.Loss, 0),
+        (2, Constants.Result.Draw, 1)
+      )
+      assert(dao.addResults(results).nonEmpty)
     }
 
     "Retrieve all Results" in {

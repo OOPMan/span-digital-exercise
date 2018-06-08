@@ -23,41 +23,27 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
   implicit val encodeResult = MappedEncoding[ResultEnum, Int](_.id)
   implicit val decoderResult = MappedEncoding[Int, ResultEnum](Result(_))
 
-  val statements = dbInitScript.getLines.mkString("\n").split("-- STATEMENT MARKER")
+  // Execute DDL statements
+  private val statements = dbInitScript.getLines.mkString("\n").split("-- STATEMENT MARKER")
   for (statement <- statements) context.executeAction(statement)
-
-  /**
-    * Retrieve a Team object by name. If it does not exist, it will be created
-    *
-    * @param name Name of Team
-    * @return
-    */
-  def getTeam(name: String): Teams = {
-    context.run(query[Teams].filter(_.name == lift(name))) match {
-      case List(team) => team
-      case _ =>
-        addTeam(name)
-        getTeam(name)
-    }
-  }
 
   /**
     * Return all Teams objects
     *
     * @return
     */
-  def getTeams: Seq[Teams] = {
-    context.run(query[Teams].sortBy(_.id)(Ord.ascNullsLast))
-  }
+  def getTeams: Seq[Teams] = context.run(query[Teams].sortBy(_.id)(Ord.ascNullsLast))
 
   /**
-    * Insert a Team object
+    * Insert multiple Team objects
     *
-    * @param name Name of Team
+    * @param teams An Iterator of team names
     * @return
     */
-  def addTeam(name: String): Int = {
-    context.run(query[Teams].insert(_.name -> lift(name)).returning(_.id))
+  def addTeams(teams: Iterable[String]): Seq[Long] = {
+    context.run(
+      liftQuery(teams).foreach(name => query[Teams].insert(_.name -> name))
+    )
   }
 
   /**
@@ -70,22 +56,19 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
   }
 
   /**
-    * Insert a Result object
+    * Insert multiple Result objects
     *
-    * @param teamId PK of Team associated with Result
-    * @param result Result enumeration value
-    * @param score Integer
+    * @param results An Iterator over results tuples
     * @return
     */
-  def addResult(teamId: Int, result: ResultEnum, score: Int): Int = {
+  def addResults(results: Iterable[(Int, ResultEnum, Int)]): Seq[Long] = {
     context.run(
-      query[Results]
-        .insert(
-          _.teamId -> lift(teamId),
-          _.result -> lift(result),
-          _.score -> lift(score)
-        )
-        .returning(_.id)
+      liftQuery(results)
+        .foreach(tuple => query[Results].insert(
+          _.teamId -> tuple._1,
+          _.result -> tuple._2,
+          _.score -> tuple._3
+        ))
     )
   }
 

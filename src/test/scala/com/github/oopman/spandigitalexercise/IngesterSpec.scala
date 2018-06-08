@@ -35,11 +35,11 @@ class IngesterSpec extends WordSpec {
 
     "Process a match record array" in {
       ingester.processLineAsArray(ingester.processLine(lines.head)) match {
-        case Some(List((team1Id, team1Result, team1Score), (team2Id, team2Result, team2Score))) =>
-          assert(team1Id == 1)
+        case Some(((team1Name, team1Result, team1Score), (team2Name, team2Result, team2Score))) =>
+          assert(team1Name == "1st Team")
           assert(team1Result == Constants.Result.Win)
           assert(team1Score == 3)
-          assert(team2Id == 2)
+          assert(team2Name == "2nd Team")
           assert(team2Result == Constants.Result.Loss)
           assert(team2Score == 0)
       }

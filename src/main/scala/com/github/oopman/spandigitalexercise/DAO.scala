@@ -27,34 +27,25 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
   private val statements = dbInitScript.getLines.mkString("\n").split("-- STATEMENT MARKER")
   for (statement <- statements) context.executeAction(statement)
 
-  private val teamCache = scala.collection.mutable.Map[String, Teams]()
   /**
     * Get a Team by Name and cache it
     *
     * @param name Name of Team
     * @return
     */
-  def getTeam(name: String): Teams = {
-    teamCache.getOrElseUpdate(
-      name,
-      context.run(
-        query[Teams]
-          .filter(_.name == lift(name))) match {
-            case List(team) => team
-            case _ =>
-              addTeam(name)
-              getTeam(name)
-          })
+  def getTeam(name: String): Option[Teams] = {
+    context.run(query[Teams].filter(_.name == lift(name))) match {
+      case List(team) => Some(team)
+      case _ => None
     }
+  }
 
   /**
     * Return all Teams objects
     *
     * @return
     */
-  def getTeams: Seq[Teams] = {
-    context.run(query[Teams].sortBy(_.id)(Ord.ascNullsLast))
-  }
+  def getTeams: Seq[Teams] = context.run(query[Teams].sortBy(_.id)(Ord.ascNullsLast))
 
   /**
     * Insert a Team object
@@ -73,9 +64,9 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
     * @return
     */
   def addTeams(teams: Iterator[String]): Seq[Long] = {
-    teams.grouped(Constants.batchInsertSize).map(teams => context.run(
+    context.run(
       liftQuery(teams).foreach(name => query[Teams].insert(_.name -> name))
-    )).toList.flatten
+    )
   }
 
   /**
@@ -114,14 +105,14 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
     * @return
     */
   def addResults(results: Iterator[(Int, ResultEnum, Int)]): Seq[Long] = {
-    results.grouped(Constants.batchInsertSize).map(results => context.run(
+    context.run(
       liftQuery(results)
         .foreach(tuple => query[Results].insert(
           _.teamId -> tuple._1,
           _.result -> tuple._2,
           _.score -> tuple._3
         ))
-    )).toList.flatten
+    )
   }
 
   /**

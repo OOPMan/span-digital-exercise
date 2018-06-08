@@ -63,7 +63,7 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
     * @param teams An Iterator of team names
     * @return
     */
-  def addTeams(teams: Iterator[String]): Seq[Long] = {
+  def addTeams(teams: Iterable[String]): Seq[Long] = {
     context.run(
       liftQuery(teams).foreach(name => query[Teams].insert(_.name -> name))
     )
@@ -104,7 +104,7 @@ class DAO[Dialect <: SqlIdiom, Naming <: NamingStrategy](val context: JdbcContex
     * @param results An Iterator over results tuples
     * @return
     */
-  def addResults(results: Iterator[(Int, ResultEnum, Int)]): Seq[Long] = {
+  def addResults(results: Iterable[(Int, ResultEnum, Int)]): Seq[Long] = {
     context.run(
       liftQuery(results)
         .foreach(tuple => query[Results].insert(
